@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Eficiência de Iluminação</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .house-bg {
+            background-image: url('https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
+            background-size: cover;
+            background-position: center;
+        }
+        .comparison-card {
+            transition: all 0.3s ease-in-out;
+        }
+        .comparison-card.recommended {
+            border: 2px solid #2563eb;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2), 0 4px 6px -2px rgba(37, 99, 235, 0.1);
+        }
+        .savings-highlight {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        }
+        .savings-icon {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto 0.5rem auto;
+        }
+        /* Custom slider style */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            margin-top: -9px;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+        }
+        input[type=range]::-ms-thumb {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #d1d5db;
+            border-radius: 5px;
+        }
+        input[type=range]:focus::-webkit-slider-runnable-track {
+            background: #9ca3af;
+        }
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #d1d5db;
+            border-radius: 5px;
+        }
+        input[type=range]::-ms-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: transparent;
+            border-color: transparent;
+            color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="house-bg">
+        <div class="min-h-screen bg-black bg-opacity-60 flex flex-col items-center justify-center p-4">
+            
+            <div class="w-full max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div class="md:grid md:grid-cols-2">
+                    <!-- Coluna da Imagem e Título -->
+                    <div class="relative hidden md:block">
+                        <img src="https://images.pexels.com/photos/2724749/pexels-photo-2724749.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Sala de estar moderna e iluminada" class="h-full w-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                        <div class="absolute bottom-0 left-0 p-8">
+                             <h1 class="text-4xl font-bold text-white mb-2">THE RIGHT LIGHT</h1>
+                             <p class="text-gray-200 text-lg">Calcule a iluminação ideal para a sua casa.</p>
+                        </div>
+                    </div>
+
+                    <!-- Coluna da Calculadora -->
+                    <div class="p-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Calculadora de Iluminação</h2>
+
+                        <!-- Slider para a área -->
+                        <div class="mb-8">
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="areaSlider" class="block text-sm font-medium text-gray-700">Área da divisão</label>
+                                <span id="areaValue" class="font-bold text-lg text-blue-600">50 m²</span>
+                            </div>
+                            <input type="range" id="areaSlider" min="5" max="200" step="5" value="50" class="w-full">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="roomType" class="block text-sm font-medium text-gray-700 mb-2">Tipo de divisão</label>
+                            <select id="roomType" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                                <option value="150">Sala de Estar (150 lux)</option>
+                                <option value="200">Cozinha (200 lux)</option>
+                                <option value="150">Quarto (150 lux)</option>
+                                <option value="500">Escritório / Zona de Leitura (500 lux)</option>
+                                <option value="100">Casa de Banho (100 lux)</option>
+                                <option value="100">Corredor (100 lux)</option>
+                            </select>
+                        </div>
+                        
+                        <button id="calculateBtn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Calcular Iluminação
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Secção de Resultados -->
+                <div id="results" class="p-8 bg-gray-50 hidden">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2 text-center">Resultados</h3>
+                    <p id="lumensNeeded" class="text-center text-lg mb-6 text-gray-600"></p>
+                    
+                     <h4 class="text-xl font-semibold text-gray-700 mb-4 text-center">Comparação das Opções</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div id="led-results"></div>
+                        <div id="fluorescent-results"></div>
+                        <div id="incandescent-results"></div>
+                    </div>
+
+                     <!-- Secção de Poupança e Impacto -->
+                    <div id="savings-section" class="hidden">
+                        <h4 class="text-xl font-semibold text-gray-700 mb-4 text-center">Poupança e Impacto Ambiental da Solução LED</h4>
+                        <div class="savings-highlight text-white p-6 rounded-lg shadow-lg">
+                            <div id="savings-content" class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                                <!-- Conteúdo da poupança será injetado aqui -->
+                            </div>
+                        </div>
+                    </div>
+
+                     <!-- Mensagem de erro -->
+                     <div id="error-message" class="hidden mt-6 text-center text-red-600 font-medium bg-red-100 p-3 rounded-lg">
+                        Por favor, insira um valor de área válido.
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-6">
+                <p class="text-xs text-gray-400">As imagens são meramente ilustrativas. Os cálculos são uma estimativa.</p>
+                <p class="text-sm text-gray-300 font-semibold mt-2">POWERED BY LLEDO</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resultsDiv = document.getElementById('results');
+        const lumensNeededEl = document.getElementById('lumensNeeded');
+        const errorMessage = document.getElementById('error-message');
+        const ledResultsDiv = document.getElementById('led-results');
+        const fluorescentResultsDiv = document.getElementById('fluorescent-results');
+        const incandescentResultsDiv = document.getElementById('incandescent-results');
+        const savingsSectionDiv = document.getElementById('savings-section');
+        const savingsContentDiv = document.getElementById('savings-content');
+        const areaSlider = document.getElementById('areaSlider');
+        const areaValue = document.getElementById('areaValue');
+
+        // --- CÓDIGO SVG DOS ÍCONES (CORRIGIDO) ---
+        const euroIcon = `<svg class="savings-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756a4.5 4.5 0 100 8.488M7.5 10.5h5.25m-5.25 3h5.25M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+        const treeIcon = `<svg class="savings-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13l-2-2" /><path d="M12 12l2-2" /><path d="M12 21v-13" /><path d="M9.824 15.995a3 3 0 0 1-2.743-3.585 3 3 0 0 1 .536-2.015 3 3 0 0 1 4.382-.795a3 3 0 0 1 4.382.795 3 3 0 0 1 .536 2.015a3 3 0 0 1-2.743 3.585h-4.364z" /></svg>`;
+        const carIcon = `<svg class="savings-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.125-.504 1.125-1.125V14.25m-17.25 4.5h12.75a1.125 1.125 0 001.125-1.125V14.25m-15 4.5v-3.75a1.125 1.125 0 011.125-1.125h12.75c.621 0 1.125.504 1.125 1.125v3.75m-15-4.5h15" /></svg>`;
+        
+        // --- FATORES DE CONVERSÃO ---
+        const CO2_FACTOR_PT = 0.19; // kg CO2e/kWh
+        const CO2_PER_TREE_YEAR = 22; // kg CO2/ano
+        const CO2_PER_KM_CAR = 0.12; // kg CO2/km
+
+        // Dados das Lâmpadas (Eficiência, Potência, Custo kWh, Nome)
+        const lampData = {
+            led: { efficiency: 100, wattage: 8, costKwh: 0.16, name: "LED" },
+            fluorescent: { efficiency: 60, wattage: 15, costKwh: 0.16, name: "Fluorescente" },
+            incandescent: { efficiency: 15, wattage: 60, costKwh: 0.16, name: "Incandescente" }
+        };
+        
+        areaSlider.addEventListener('input', (event) => {
+            areaValue.textContent = `${event.target.value} m²`;
+        });
+        
+        areaValue.textContent = `${areaSlider.value} m²`;
+
+        calculateBtn.addEventListener('click', () => {
+            const area = parseFloat(areaSlider.value);
+            const lux = parseInt(document.getElementById('roomType').value);
+
+            errorMessage.classList.add('hidden');
+            resultsDiv.classList.remove('hidden');
+
+            const totalLumens = area * lux;
+            lumensNeededEl.innerHTML = `<strong>Lúmens Totais Necessários:</strong> <span class="text-blue-600 font-bold">${Math.round(totalLumens)} lm</span>`;
+
+            const ledResult = calculateLampType('led', totalLumens);
+            const fluorescentResult = calculateLampType('fluorescent', totalLumens);
+            const incandescentResult = calculateLampType('incandescent', totalLumens);
+
+            displayResultCard(ledResultsDiv, ledResult, true);
+            displayResultCard(fluorescentResultsDiv, fluorescentResult, false);
+            displayResultCard(incandescentResultsDiv, incandescentResult, false);
+
+            displaySavings(ledResult, incandescentResult);
+            
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        function calculateLampType(type, totalLumens) {
+            const { efficiency, wattage, costKwh, name } = lampData[type];
+            const lumensPerLamp = wattage * efficiency;
+            const lampsNeeded = Math.ceil(totalLumens / lumensPerLamp);
+            const totalWattage = lampsNeeded * wattage;
+            const annualKwh = (totalWattage * 4 * 365) / 1000;
+            const annualCost = annualKwh * costKwh;
+            const annualCo2 = annualKwh * CO2_FACTOR_PT;
+
+            return { lampsNeeded, totalWattage, annualCost, annualCo2, wattage, lumensPerLamp, name, type };
+        }
+
+        function displayResultCard(element, data, isRecommended) {
+            const recommendedClass = isRecommended ? 'recommended' : 'border-gray-300';
+            const recommendedBadge = isRecommended ? '<span class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">Recomendado</span>' : '';
+
+            element.innerHTML = `
+                <div class="comparison-card bg-white p-6 rounded-lg shadow-md h-full relative border ${recommendedClass}">
+                    ${isRecommended ? recommendedBadge : ''}
+                    <h4 class="text-xl font-bold text-gray-800 mb-4">${data.name}</h4>
+                    <div class="space-y-3 text-gray-700">
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Nº de luminárias (${data.wattage}W):</span>
+                            <span class="font-bold text-lg text-blue-600">${data.lampsNeeded}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">Custo Anual:</span>
+                            <span class="font-bold text-lg text-green-600">~${data.annualCost.toFixed(2)} €</span>
+                        </div>
+                         <div class="flex justify-between items-center border-t pt-3 mt-3">
+                            <span class="font-medium">Pegada de Carbono Anual:</span>
+                            <span class="font-bold text-lg">${data.annualCo2.toFixed(1)} kg CO₂e</span>
+                        </div>
+                    </div>
+                    <p class="mt-4 text-xs text-gray-500">Cada lâmpada produz ~${Math.round(data.lumensPerLamp)} lúmens.</p>
+                </div>
+            `;
+        }
+
+        function displaySavings(led, incandescent) {
+            const costSavings = incandescent.annualCost - led.annualCost;
+            const co2Savings = incandescent.annualCo2 - led.annualCo2;
+
+            if (costSavings > 0) {
+                const treesEquivalent = (co2Savings / CO2_PER_TREE_YEAR).toFixed(1);
+                const carKmEquivalent = Math.round(co2Savings / CO2_PER_KM_CAR);
+
+                savingsContentDiv.innerHTML = `
+                    <div class="flex flex-col items-center">
+                        ${euroIcon}
+                        <span class="text-3xl font-bold">${costSavings.toFixed(2)}€</span>
+                        <span class="text-sm opacity-80 mt-1">Poupança Anual</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        ${treeIcon}
+                        <span class="text-3xl font-bold">${treesEquivalent}</span>
+                        <span class="text-sm opacity-80 mt-1">Árvores (equivalente)</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        ${carIcon}
+                        <span class="text-3xl font-bold">${carKmEquivalent}</span>
+                        <span class="text-sm opacity-80 mt-1">Km de Carro (evitados)</span>
+                    </div>
+                `;
+                savingsSectionDiv.classList.remove('hidden');
+            } else {
+                savingsSectionDiv.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
