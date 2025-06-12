@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K2000 SIMUL#2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <header class="bg-blue-800 text-white text-center py-4">
+        <h1 class="text-3xl font-bold">K2000 SIMUL#2025</h1>
+    </header>
+
+    <main class="flex-grow container mx-auto p-4">
+        <div class="bg-white p-6 rounded shadow-md">
+            <h2 class="text-2xl font-semibold mb-4">Simulação Energética de Edifícios</h2>
+            <form id="simForm" class="space-y-4">
+                <div>
+                    <label class="block font-medium">Distrito</label>
+                    <select id="district" class="mt-1 w-full border rounded p-2">
+                        <option value="lisboa">Lisboa</option>
+                        <option value="porto">Porto</option>
+                        <option value="faro">Faro</option>
+                        <option value="coimbra">Coimbra</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium">Tipo de Edifício</label>
+                    <select id="buildingType" class="mt-1 w-full border rounded p-2">
+                        <option value="res">Residencial</option>
+                        <option value="com">Comercial</option>
+                        <option value="office">Escritório</option>
+                        <option value="school">Escola</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium">Tipo de Envolvente</label>
+                    <select id="envelope" class="mt-1 w-full border rounded p-2">
+                        <option value="light">Leve</option>
+                        <option value="medium">Média</option>
+                        <option value="heavy">Pesada</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium">Sistemas Técnicos</label>
+                    <div class="flex flex-wrap gap-4 mt-1">
+                        <label><input type="checkbox" value="avac" class="mr-1" checked>AVAC</label>
+                        <label><input type="checkbox" value="lighting" class="mr-1" checked>Iluminação</label>
+                        <label><input type="checkbox" value="pumps" class="mr-1">Bombas</label>
+                        <label><input type="checkbox" value="vent" class="mr-1">Ventilação</label>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-medium">Área (m²)</label>
+                        <input id="area" type="number" value="100" class="mt-1 w-full border rounded p-2">
+                    </div>
+                    <div>
+                        <label class="block font-medium">Taxa de Infiltração (ACH)</label>
+                        <input id="infiltration" type="number" step="0.1" value="0.5" class="mt-1 w-full border rounded p-2">
+                    </div>
+                    <div>
+                        <label class="block font-medium">Densidade de Ocupação (pessoas/m²)</label>
+                        <input id="occupancy" type="number" step="0.01" value="0.05" class="mt-1 w-full border rounded p-2">
+                    </div>
+                    <div>
+                        <label class="block font-medium">Iluminação (W/m²)</label>
+                        <input id="lighting" type="number" step="0.1" value="10" class="mt-1 w-full border rounded p-2">
+                    </div>
+                    <div>
+                        <label class="block font-medium">Equipamentos (W/m²)</label>
+                        <input id="equipment" type="number" step="0.1" value="15" class="mt-1 w-full border rounded p-2">
+                    </div>
+                </div>
+                <button type="submit" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded">Executar Simulação</button>
+            </form>
+
+            <div id="results" class="mt-8 hidden">
+                <h3 class="text-xl font-semibold mb-2">Resultados</h3>
+                <div id="summary" class="space-y-2"></div>
+                <div id="energyTable" class="overflow-x-auto mt-4"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-200 text-center py-4 mt-8">
+        KOELHO2000 @2025
+    </footer>
+
+<script>
+const climate = {
+    lisboa: [11,12,14,15,18,21,24,24,22,18,14,11],
+    porto: [9,10,12,13,16,19,21,21,19,15,11,9],
+    faro: [12,13,15,17,20,23,26,26,24,20,16,13],
+    coimbra: [8,10,12,14,17,20,22,22,20,16,11,9]
+};
+const envelopeU = {light: 1.2, medium: 0.8, heavy: 0.5};
+
+function simulate(data){
+    const indoorSetHeating = 20;
+    const indoorSetCooling = 25;
+    const hours = 8760;
+    const cpAir = 0.33; // Wh/(m3·K)
+    let heatingEnergy = Array(12).fill(0);
+    let coolingEnergy = Array(12).fill(0);
+    let peakHeat = 0;
+    let peakCool = 0;
+    for(let h=0; h<hours; h++){
+        const month = Math.floor(h/730); // approx
+        const outdoorT = climate[data.district][month] + 5*Math.sin((h%24)/24*Math.PI);
+        const u = envelopeU[data.envelope];
+        const deltaH = indoorSetHeating - outdoorT;
+        const deltaC = outdoorT - indoorSetCooling;
+        const volume = data.area*3; // assuming 3m height
+        let heatLoad = 0;
+        let coolLoad = 0;
+        if(deltaH>0) heatLoad += data.area*u*deltaH + data.infiltration*volume*cpAir*deltaH;
+        if(deltaC>0) coolLoad += data.area*u*deltaC + data.infiltration*volume*cpAir*deltaC;
+        // internal gains (simplified)
+        const internalGains = data.area*(data.lighting+data.equipment) + data.area*data.occupancy*100;
+        coolLoad += internalGains/1000; // W to kW
+
+        heatingEnergy[month]+=heatLoad/1000; // Wh to kWh
+        coolingEnergy[month]+=coolLoad; // already kW per hour
+        if(heatLoad/1000>peakHeat) peakHeat=heatLoad/1000;
+        if(coolLoad>peakCool) peakCool=coolLoad;
+    }
+    return {heatingEnergy,coolingEnergy,peakHeat,peakCool};
+}
+
+function classify(totalPerArea){
+    if(totalPerArea<50) return 'A';
+    if(totalPerArea<100) return 'B';
+    if(totalPerArea<150) return 'C';
+    if(totalPerArea<200) return 'D';
+    if(totalPerArea<250) return 'E';
+    if(totalPerArea<300) return 'F';
+    return 'G';
+}
+
+document.getElementById('simForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    const data={
+        district:document.getElementById('district').value,
+        buildingType:document.getElementById('buildingType').value,
+        envelope:document.getElementById('envelope').value,
+        area:parseFloat(document.getElementById('area').value),
+        infiltration:parseFloat(document.getElementById('infiltration').value),
+        occupancy:parseFloat(document.getElementById('occupancy').value),
+        lighting:parseFloat(document.getElementById('lighting').value),
+        equipment:parseFloat(document.getElementById('equipment').value)
+    };
+    const res=simulate(data);
+    const totalHeat=res.heatingEnergy.reduce((a,b)=>a+b,0);
+    const totalCool=res.coolingEnergy.reduce((a,b)=>a+b,0);
+    const total=totalHeat+totalCool;
+    const ep=total/data.area;
+    const clas=classify(ep);
+    const summary=document.getElementById('summary');
+    summary.innerHTML=`<p><strong>Pico Aquecimento:</strong> ${res.peakHeat.toFixed(1)} kW</p>
+                       <p><strong>Pico Arrefecimento:</strong> ${res.peakCool.toFixed(1)} kW</p>
+                       <p><strong>Consumo Anual:</strong> ${(total).toFixed(0)} kWh</p>
+                       <p><strong>Classe Energética:</strong> ${clas}</p>`;
+    const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    let table='<table class="min-w-full text-sm"><tr><th class="px-2">Mês</th><th class="px-2">Aquecimento (kWh)</th><th class="px-2">Arrefecimento (kWh)</th></tr>';
+    for(let i=0;i<12;i++){
+        table+=`<tr class="border-t"><td class="px-2">${months[i]}</td><td class="px-2 text-right">${res.heatingEnergy[i].toFixed(0)}</td><td class="px-2 text-right">${res.coolingEnergy[i].toFixed(0)}</td></tr>`;
+    }
+    table+='</table>';
+    document.getElementById('energyTable').innerHTML=table;
+    document.getElementById('results').classList.remove('hidden');
+});
+</script>
+</body>
+</html>
+
